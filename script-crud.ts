@@ -169,4 +169,11 @@ const useInterface = () => {
     
 }
 
+document.addEventListener('TaskDone', () => {
+    if (state.selectedTask) {
+        state.selectedTask.done = true;
+        useInterface();
+    }
+})
+
 useInterface()

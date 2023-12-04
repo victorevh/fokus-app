@@ -96,7 +96,7 @@ const contagemRegressiva = () => {
         zerar()
         const focoAtivo = html.getAttribute('data-contexto') === 'foco'
         if (focoAtivo) {            
-            var event = new CustomEvent("TarefaFinalizada", {
+            var event = new CustomEvent("TaskDone", {
                 detail: {
                     message: "A tarefa foi concluída com sucesso!",
                     time: new Date(),

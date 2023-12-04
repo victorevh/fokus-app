@@ -126,4 +126,10 @@ const useInterface = () => {
         tasksUL === null || tasksUL === void 0 ? void 0 : tasksUL.appendChild(li);
     });
 };
+document.addEventListener('TaskDone', () => {
+    if (state.selectedTask) {
+        state.selectedTask.done = true;
+        useInterface();
+    }
+});
 useInterface();
