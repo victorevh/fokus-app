@@ -6,6 +6,7 @@ interface Task {
 interface AppState {
     tasks: Task[];
     selectedTask: Task | null;
+    edit: boolean
 }
 
 let state: AppState = {
@@ -23,7 +24,8 @@ let state: AppState = {
             done: false
         }
     ],
-    selectedTask: null
+    selectedTask: null,
+    edit: false
 }
 
 const taskSelect = (state: AppState, task: Task) : AppState => {
@@ -31,6 +33,35 @@ const taskSelect = (state: AppState, task: Task) : AppState => {
         ...state,
         selectedTask: task === state.selectedTask ? null : task
     }
+}
+
+const newTask = (state: AppState, task: Task) : AppState => {
+    return {
+        ...state,
+        tasks: [...state.tasks, task]
+    }
+}
+
+const deleteTask = (state: AppState): AppState => {
+    if (state.selectedTask) {
+        const tasks = state.tasks.filter(t => t != state.selectedTask);
+        return { ...state, tasks, selectedTask: null, edit: false };
+    } else {
+        return state;
+    }
+}
+
+const deleteAll = (state: AppState): AppState => {
+    return { ...state, tasks: [], selectedTask: null, edit: false };
+}
+
+const deleteAllFinished = (state: AppState): AppState => {
+    const tasks = state.tasks.filter(t => !t.done);
+    return { ...state, tasks, selectedTask: null, edit: false };
+}
+
+const editTask = (state: AppState, task: Task): AppState => {
+    return { ...state, edit: !state.edit, selectedTask: task };
 }
 
 const useInterface = () => {
@@ -44,11 +75,59 @@ const useInterface = () => {
         </svg>
     `
 
-    const tasksUL = document.querySelector('#app__section-task-list') as HTMLUListElement;
+    const tasksUL = document.querySelector<HTMLUListElement>('.app__section-task-list');
+    const formAddTask = document.querySelector<HTMLFormElement>('.app__form-add-task');
+    const textArea = document.querySelector<HTMLTextAreaElement>('.app__form-textArea');
+    const labelActiveTask = document.querySelector<HTMLParagraphElement>('.app__section-active-task-description')
+    const btnAddTask = document.querySelector<HTMLButtonElement>('.app__button--add-task');
+    const btnCancel = document.querySelector<HTMLButtonElement>('.app__form-footer__button--cancel');
+    const btnDelete = document.querySelector<HTMLButtonElement>('.app__form-footer__button--delete');
+    const btnDeleteDones = document.querySelector<HTMLButtonElement>('#btn-remover-concluidas');
+    const btnDeleteAll = document.querySelector<HTMLButtonElement>('#btn-remover-todas');
+
+    labelActiveTask!.textContent = state.selectedTask ? state.selectedTask.description : null
+
+    if (!btnAddTask) {
+        throw new Error('Button not found');
+    }
+
+    btnAddTask.onclick = () => {
+        
+        formAddTask?.classList.toggle('hidden');
+    }
+
+    formAddTask!.onsubmit = (event) => {
+        event.preventDefault();
+        const description = textArea!.value;
+        state = newTask(state, {
+            description,
+            done: false
+        })
+        useInterface()
+    }
+
+    btnCancel!.onclick = () => {
+        formAddTask!.classList.add('hidden');
+    }
+
+    btnDelete!.onclick = () => {
+        state = deleteTask(state);
+        formAddTask!.classList.add('hidden');
+        useInterface();
+    }
+
+    btnDeleteDones!.onclick = () => {
+        state = deleteAllFinished(state);
+        useInterface();
+    }
+
+    btnDeleteAll!.onclick = () => {
+        state = deleteAll(state);
+        useInterface();
+    }
 
     if (tasksUL) {
         tasksUL.innerHTML = '';
-
     }
 
     state.tasks.forEach(task => { 
@@ -74,11 +153,20 @@ const useInterface = () => {
             li.classList.add('app__section-task-list-item-complete')
         }
 
+        if (task == state.selectedTask) {
+            li.classList.add('app__section-task-list-item-active')
+        }
+
         li.appendChild(svgIcon)
         li.appendChild(paragraph)
         li.appendChild(button)
-
+        li.addEventListener('click', () => {
+            state = taskSelect(state, task)
+            useInterface()
+        })
         tasksUL?.appendChild(li)
     })
     
 }
+
+useInterface()
